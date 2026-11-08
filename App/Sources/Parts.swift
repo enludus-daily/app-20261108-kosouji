@@ -8,6 +8,8 @@ import SwiftUI
 struct FloorPlanView: View {
     let hazes: [Room: Double]
     var today: Set<Room> = []
+    /// 今日、手が入った部屋（淡い mint に澄み、小さな印がつく）
+    var cleaned: Set<Room> = []
     var hidden: Set<Room> = []
     var selected: Room?
     var showLabels = true
@@ -38,8 +40,12 @@ struct FloorPlanView: View {
         let rect = CGRect(x: f.x * size.width, y: f.y * size.height, width: f.w * size.width, height: f.h * size.height)
         let isHidden = hidden.contains(room)
         let isToday = today.contains(room)
+        let isCleaned = cleaned.contains(room)
         ZStack {
             Rectangle().fill(isToday ? Palette.mintSoft : Palette.paper)
+            if isCleaned {
+                Rectangle().fill(Palette.mint.opacity(0.35)).transition(.opacity)
+            }
             if isHidden {
                 HatchView().opacity(0.5)
             } else {
@@ -61,6 +67,12 @@ struct FloorPlanView: View {
                             .padding(.vertical, 2)
                             .background(TapeShape().fill(Palette.tape.opacity(0.85)))
                             .rotationEffect(.degrees(-4))
+                    }
+                    if isCleaned && !isToday {
+                        Image(systemName: "sparkle")
+                            .font(.system(size: 9))
+                            .foregroundStyle(Palette.mintDeep)
+                            .transition(.scale.combined(with: .opacity))
                     }
                     Text(room.shortName)
                         .font(.system(size: rect.width < 70 ? 10 : 12, design: .serif))

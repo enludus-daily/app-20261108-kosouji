@@ -21,6 +21,7 @@ struct TodayView: View {
                             .frame(maxWidth: 520)
                             VStack(spacing: Space.l) {
                                 tags
+                                sharePanel
                                 streakPanel
                             }
                             .frame(maxWidth: 440)
@@ -31,6 +32,7 @@ struct TodayView: View {
                             header
                             plan
                             tags
+                            sharePanel
                             yearEndPanel
                             streakPanel
                         }
@@ -87,6 +89,7 @@ struct TodayView: View {
         return FloorPlanView(
             hazes: hazes,
             today: Set(model.todaySpots.filter { !model.isDoneToday($0) }.map(\.room)),
+            cleaned: Set(model.entries(on: today).map(\.room)),
             hidden: model.household.hiddenRooms,
             onTap: { room in
                 model.selectedRoom = room
@@ -116,6 +119,35 @@ struct TodayView: View {
                 }
             }
         }
+    }
+
+    // MARK: - 今日の家を共有
+
+    @ViewBuilder
+    private var sharePanel: some View {
+        if model.doneTodayCount > 0, let image = shareImage {
+            ShareLink(item: image, preview: SharePreview("今日の家", image: image)) {
+                Label("今日の家を、1 枚の絵にして送る", systemImage: "square.and.arrow.up")
+                    .font(.subheadline.weight(.medium))
+            }
+            .buttonStyle(QuietButtonStyle())
+        }
+    }
+
+    /// 共有カード（1080×1350）。間取り図・日付・家の澄み・今日の場所
+    private var shareImage: Image? {
+        let renderer = ImageRenderer(content: ShareCard(
+            day: DayText.short(model.today, calendar: model.calendar),
+            clarity: model.planner.clarity(on: model.today),
+            hazes: Dictionary(uniqueKeysWithValues: Room.allCases.map { ($0, model.planner.haze(of: $0, on: model.today)) }),
+            cleaned: Set(model.entries(on: model.today).map(\.room)),
+            hidden: model.household.hiddenRooms,
+            spots: model.entries(on: model.today).map(\.name),
+            streak: model.streak.current
+        ))
+        renderer.scale = 3
+        guard let ui = renderer.uiImage else { return nil }
+        return Image(uiImage: ui)
     }
 
     // MARK: - 年末までの進み
@@ -266,7 +298,7 @@ struct SpotTag: View {
             .padding(.bottom, Space.l)
             .background(TagBackground())
             .overlay(alignment: .topTrailing) {
-                if done { CleanStamp().padding(Space.l).transition(.scale(scale: 1.3).combined(with: .opacity)) }
+                if done { CleanStamp().padding(.trailing, Space.l).padding(.top, 56).transition(.scale(scale: 1.3).combined(with: .opacity)) }
             }
             .offset(x: swapNudge ? -10 : 0)
         }
@@ -315,5 +347,52 @@ struct CleanStamp: View {
         .frame(width: 52, height: 52)
         .rotationEffect(.degrees(-8))
         .accessibilityLabel("済み")
+    }
+}
+
+/// 共有カード：紙の上の間取り図と、今日済ませた場所。テープは 1 枚だけ
+struct ShareCard: View {
+    let day: String
+    let clarity: Int
+    let hazes: [Room: Double]
+    let cleaned: Set<Room>
+    let hidden: Set<Room>
+    let spots: [String]
+    let streak: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .lastTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("こそうじ暦").font(.system(size: 11, weight: .medium)).kerning(0.6).foregroundStyle(Palette.sub)
+                    Text(day).font(.system(size: 24, design: .serif)).foregroundStyle(Palette.ink)
+                }
+                Spacer()
+                HStack(alignment: .firstTextBaseline, spacing: 2) {
+                    Text("\(clarity)").font(.system(size: 40, design: .serif)).kerning(-2).monospacedDigit()
+                    Text("%").font(.system(size: 14, design: .serif)).foregroundStyle(Palette.sub)
+                }
+                .foregroundStyle(Palette.ink)
+            }
+            FloorPlanView(hazes: hazes, cleaned: cleaned, hidden: hidden)
+                .clipShape(RoundedRectangle(cornerRadius: Radius.small, style: .continuous))
+            VStack(alignment: .leading, spacing: 4) {
+                Text("今日の小掃除").font(.system(size: 11, weight: .medium)).kerning(0.6).foregroundStyle(Palette.sub)
+                ForEach(spots, id: \.self) { name in
+                    Text("・\(name)").font(.system(size: 15)).foregroundStyle(Palette.ink)
+                }
+                if streak > 1 {
+                    Text("続けて \(streak) 日").font(.system(size: 13, design: .serif)).foregroundStyle(Palette.mintDeep)
+                }
+            }
+        }
+        .padding(24)
+        .frame(width: 360, height: 450)
+        .background(Palette.paper)
+        .overlay(alignment: .top) {
+            TapeShape().fill(Palette.tape.opacity(0.85)).frame(width: 78, height: 20).rotationEffect(.degrees(-4)).offset(y: -6)
+        }
+        .padding(12)
+        .background(Palette.ground)
     }
 }

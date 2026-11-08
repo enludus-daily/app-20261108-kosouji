@@ -216,7 +216,7 @@ struct SpotDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Space.l) {
-                    ScreenHeader(label: "\(spot.room.name)・\(spot.minutes) 分・\(spot.intervalText)", title: spot.name)
+                    ScreenHeader(label: "\(spot.room.name)・\(spot.minutes) 分・目安 \(spot.intervalText)", title: spot.name)
                     if !spot.tools.isEmpty {
                         VStack(alignment: .leading, spacing: Space.s) {
                             Text("用意するもの").smallLabel()

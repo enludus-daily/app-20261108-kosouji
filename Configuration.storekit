@@ -1,0 +1,38 @@
+{
+  "identifier" : "6E3A1B20",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "480",
+      "familyShareable" : true,
+      "internalID" : "6754000601",
+      "localizations" : [
+        {
+          "description" : "替えどき・季節の手入れ・年末の逆算・自分の場所",
+          "displayName" : "こそうじ暦 Pro",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "com.enludus.daily.006.pro",
+      "referenceName" : "Pro",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6754000600",
+    "_locale" : "ja",
+    "_storefront" : "JPN",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

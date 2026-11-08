@@ -1,36 +1,80 @@
-# daily-app-template
+# こそうじ暦
 
-enludus-daily で毎日作る iOS アプリ（SwiftUI）のテンプレート。テンプレートから作ったリポジトリでは、この README をそのアプリの説明に書き換える。
+年末の大掃除を、**1 日 10 分の「小掃除」** に分けて 1 年で家じゅうを回す iOS アプリ（SwiftUI、iPhone・iPhone Duo）。
+家の **間取り図** が、掃除してからの日数で部屋ごとに少しずつ曇り、済ませると澄む。
+
+- だれの：共働き・子育て中で、年末にまとめて大掃除をする時間がない人
+- どう使う：毎日「今日の 1 か所」の札（場所・時間・道具・手順 3 つ・こつ）を見て、済んだら「済んだ」。札は前回の日・季節・年末までの残りから決まる
+- 作らなかったもの：家族の同期・分担（サーバーが要る）、1 から作る掃除リスト（初期設定の重さが既存アプリの不満）、ポイント・コイン、写真での汚れ判定、広告、アカウント
+
+記録の経緯は https://github.com/enludus-daily/daily-ideas/issues/8
 
 ## 中身
 
-| パス | 役割 |
+| | |
 |---|---|
-| `project.yml` | XcodeGen の spec。`.xcodeproj` はコミットしない |
-| `App/Sources/`, `Tests/` | ひな形のアプリとテスト（Swift Testing） |
-| `App/Resources/` | アイコン、アクセントカラー、`PrivacyInfo.xcprivacy` |
-| `.github/workflows/ci.yml` | push / PR で daily-actions の `ios-ci.yml` を呼ぶ（40 桁の SHA で固定） |
-| `.github/workflows/testflight.yml` | 手動（workflow_dispatch）で `ios-testflight.yml` を呼ぶ（アップロードのあと内部テストに配信） |
-| `.github/workflows/asc.yml` | 手動で `ios-asc.yml` を呼ぶ（App Store Connect に名前・説明などを入れる / 最新ビルドを配信） |
-| `docs/app-store.json`, `PRIVACY.md` | App Store Connect に入れる情報、プライバシーポリシー |
-| `scripts/pin-daily-actions.sh` | daily-actions の SHA を書き換える（整備用のセッションか本人だけ。自己 CI の成功を確かめる） |
-| `scripts/new-app.sh` | 名前・表示名・枠（Bundle ID）に書き換える |
-| `scripts/preflight-push.sh`, `.githooks/pre-push` | push の前の検査（秘密・個人情報）と1日の上限 |
-| `scripts/scan-sensitive.sh` | 検査の複製（正本は daily-actions/scan/。違うと CI が警告） |
-| `scripts/make-icon.py` | アイコンを作る（Pillow） |
-| `.claude/skills/` | dev-lifecycle / dev-judgment / dev-workflow（naki0227/useful-map から取得） |
-| `CLAUDE.md`, `docs/daily-runbook.md` | 毎日のセッションの決まりと手順 |
-| `docs/app-store.md` | 審査の危険・本人がすることの記録 |
+| 場所 | 無料 115 か所（10 部屋：キッチン 28・浴室 14・洗面所 10・トイレ 9・リビング 17・寝室 11・窓とベランダ 8・玄関 7・廊下 5・収納 6）、Pro 42 か所（替えどき 22・季節の手入れ 20）。全部に手順 3 つ・道具・目安の間隔、多くにこつ |
+| 今日の札 | 前回からの日数 ÷ 間隔 × 季節（向いた月は 1.3 倍）× 年末（10〜12 月は年末の所を 1.25 倍）。時間の上限（5/10/15/20 分）を超える所は後ろへ。「ほかの所にする」で次の候補 |
+| 間隔の引き延ばし | 目安の間隔のままでは毎日 1 か所で追いつかない（無料の 115 か所で 1 日 6 か所ぶん）。間隔の平方根に比例して引き延ばし、短い所はよく、長い所も 1 年に 1 度は回るようにした（`Planner.pace`。1 年の模擬でテスト） |
+| 間取り図 | 自作の Shape（壁の細い線・ドアの 1/4 円）。曇りは決まった乱数の点（毎回同じ散り方） |
+| 暦 | 月の暦（済ませた数で 3 段の濃さ）、その日の場所、月のまとめ |
+| 探す | 「レンジフード」のように場所の名前で探し、最後にやった日とこれまでの日付を見る |
+| 毎日開く理由 | 今日の札・家の澄み（%）・年末までの進み・続けた日数（途切れても「おかえりなさい」）・毎日のお知らせ |
+
+## Duo（Apple Tech Talk「Prepare your app for iPhone Duo」https://developer.apple.com/videos/play/tech-talks/111461/ ）
+並べ方は size class だけで決める。内側の画面（regular）では、今日は左に間取り図、右に札。間取りは左に間取り図、右に場所の一覧。TabView は `.sidebarAdaptable`。
+
+## 世界観とトークン
+- 棚卸し：間取り図、掃除当番の札、雑巾、重曹・クエン酸の容器、メラミンスポンジ、はたき、窓の曇り、ゴム手袋、ゴミ袋、暦
+- **間取り図が家の状態の画面になり、掃除当番の札が今日の 1 か所になる。** 札は上の角を落として紐の穴をあけた自作の Shape
+- 色：mint 1 系統（accent `#A8DCCB` L0.76・soft `#E2F2EC`・deep `#4F8C7A`・paper `#F9FBFA`・地 `#F2F6F4`・文字 `#2E3A40`）、差し色は peach のテープ `#F4BBA4`（「今日」の印と Pro の題だけ）。`scripts/tone-check.py` exit 0
+- 書体：見出しと数字はセリフ（数字は字間 -1〜-2、`monospacedDigit`）、本文はサンセリフ、小さなラベルは字間 0.6
+- 角丸 6/12/14/18、余白 4/8/12/16/24、影は 2 種（0.06 と札の 0.12）
+- ライトに固定（間取り図の紙と曇りの見え方を保つため。StudyReel と同じ判断）
+
+## 手応えの表
+
+| できごと | 動き | 振動 | 音 |
+|---|---|---|---|
+| 押す | ボタンが 0.97 倍に縮む | — | なし（家で静かに使う道具のため） |
+| 1 つ成功（手順に印） | 丸の中にチェックの線が描かれる、手順に取り消し線 | selection | なし |
+| 連続・まとめて | 3 つの手順が済むと「済んだ」へ目が向く（丸がすべて埋まる） | selection | なし |
+| 失敗・やめる（ほかの所にする） | 札が横に 10pt ずれて戻り、次の札に入れかわる | impact light | なし |
+| 完了（済んだ） | 札に「済」の印が 1.3 倍から置かれる、間取り図の部屋の曇りが 1.2 秒で澄む、澄み % と年末の数が数字の切りかえで動く | success | なし |
+| 場面の切れ目 | 使い方の 1 枚目で、曇った家が 1 部屋ずつ澄む見本がくり返す | selection（ページ） | なし |
+
+動きを減らす設定がオンなら、札のずれ・印の弾み・見本の動きを止め、値を直接変える。
+
+## 課金
+
+**買い切りの Pro ¥480（ファミリー共有）**。`com.enludus.daily.006.pro`
+
+- 無料：家じゅうの小掃除 115 か所・今日の札・間取り図・暦・場所で探す・年末までの進み・お知らせ（核は全部無料、広告なし）
+- Pro：替えどき 22 か所、季節の手入れ 20 か所、年末の逆算（12/28 までに 1 日何か所で間に合うかと、年末の所を先に出す）、1 日 2〜3 か所、自分の場所を足す
+- 形の理由：中身（場所の束）は増え続けないので、サブスクではなく買い切り。家族で同じ家を回すのでファミリー共有
+- 出す場面：3 回目の小掃除を済ませた直後に 1 度だけ。あとは鍵の行（設定・間取り・年末の欄）から
+- 比べた（App Store 日本、2026-11-08 に確認）
+
+| アプリ | 形と値段 | 中身 |
+|---|---|---|
+| Tody（https://apps.apple.com/jp/app/tody/id595339588 ） | 無料＋プレミアム・ソロ ¥1,500（デュオ ¥4,000 など） | 汚れのインジケーター、項目は自分で作る |
+| Sweepy（https://apps.apple.com/jp/app/id1498897320 ） | 月 ¥300・年 ¥1,750（3 日のお試し） | 部屋ごとの清潔さ、家族の分担、コイン |
+| Home Tasker（https://apps.apple.com/jp/app/id1604578415 ） | 月 ¥1,000・年 ¥6,000・永久 ¥18,000 | テンプレート、分担、AI アシスタント |
+
+こそうじ暦は、やり方つきの場所を手で用意し、核を無料にしたうえで、Pro は比べた中でいちばん安い（Tody の 1/3、Sweepy の年額の 1/4 弱）。
+自分に問う「この値段で払うか」：①替えどきは忘れやすく、1 回でも浄水器やフィルターの替え忘れを防げば元が取れる ②年末の逆算で「あと何か所」が分かると、12 月の気が楽になる ③1 度払えば終わり。
+
+## 作り
+
+- `App/Sources/Planner.swift`：曇り・今日の札・年末の進み・続けた日数（画面から切り離し、`Tests/` でテスト）
+- `App/Sources/SpotData.swift`：手で用意した場所のデータ。塩素系と酸性を同じ場所に並べない（テスト）
+- `App/Sources/AppModel.swift`：記録（UserDefaults に JSON 1 つ）と権利
+- スクリーンショット：起動引数 `-screenshotScene <名前>`（`launch onboarding steps done plan room spot calendar empty settings paywall`）
 
 ## 手元（Mac）で開く
 
 ```sh
-brew install xcodegen   # CI は 2.46.0 で固定
+brew install xcodegen
 xcodegen generate
-open DailyApp.xcodeproj
+open Kosouji.xcodeproj
 ```
-
-## 版
-
-- Xcode 27.1（ランナー `xcode-27`。GitHub では Preview 扱い）、iOS 18.0 以降、iPhone だけ（iPhone Duo の内側の画面にも合わせる）、Swift 6
-- スキルの取得元：`naki0227/personal-knowledge`（Vault、private）の `templates/repo-bootstrap/.claude/skills/` を、本人の整備用セッションで写す（2026-11-05 に app-quality-bar を追加）

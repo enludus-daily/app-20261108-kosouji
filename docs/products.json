@@ -3,15 +3,15 @@
   "products": [
     {
       "type": "NON_CONSUMABLE",
-      "productId": "com.enludus.daily.template.pro",
+      "productId": "com.enludus.daily.006.pro",
       "referenceName": "Pro",
       "price": 480,
       "familySharable": true,
-      "reviewNote": "Pro を買うと、すべての〇〇と詳しい振り返りが使えます。課金の画面は設定 > Pro から開けます。",
+      "reviewNote": "Pro を買うと、追加の束 2 つ（替えどき 22 か所・季節の手入れ 20 か所）、年末の逆算（12 月 28 日までに 1 日何か所で間に合うか）、1 日 2〜3 か所の札、自分の場所を足す機能が使えます。課金の画面は 設定 > Pro でできること、または 3 回目の小掃除を済ませた直後に開きます。",
       "reviewScreenshot": "docs/iap/paywall.png",
       "localizations": [
-        {"locale": "ja", "name": "Pro", "description": "すべての〇〇と詳しい振り返り"},
-        {"locale": "en-US", "name": "Pro", "description": "All 〇〇 and detailed reviews"}
+        {"locale": "ja", "name": "こそうじ暦 Pro", "description": "替えどき・季節の手入れ・年末の逆算・自分の場所"},
+        {"locale": "en-US", "name": "Kosouji Pro", "description": "Replacements, seasonal care, year-end plan"}
       ]
     }
   ]

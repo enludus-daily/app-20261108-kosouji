@@ -52,7 +52,8 @@ struct CalendarView: View {
         let weekday = cal.component(.weekday, from: first.date(calendar: cal))  // 1 = 日
         let count = cal.range(of: .day, in: .month, for: first.date(calendar: cal))?.count ?? 30
         let leading: [DayKey?] = Array(repeating: nil, count: weekday - 1)
-        return leading + (1...count).map { DayKey(year: year, month: month, day: $0) }
+        let monthDays: [DayKey?] = (1...count).map { Optional(DayKey(year: year, month: month, day: $0)) }
+        return leading + monthDays
     }
 
     private var monthGrid: some View {

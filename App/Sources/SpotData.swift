@@ -5,7 +5,7 @@ import Foundation
 // 塩素系と酸性（クエン酸）は同じ場所に並べない（テストで確かめる）。
 
 enum SpotData {
-    static let all: [Spot] = kitchen + bath + washroom + toilet + living + bedroom + veranda + entrance + hallway + storage + replace + season
+    static let all: [Spot] = [kitchen, bath, washroom, toilet, living, bedroom, veranda, entrance, hallway, storage, replace, season].flatMap { $0 }
 
     static let byID: [String: Spot] = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
 

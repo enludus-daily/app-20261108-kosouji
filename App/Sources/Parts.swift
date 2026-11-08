@@ -132,8 +132,22 @@ struct DoorArc: Shape {
     }
 }
 
-/// 曇り：細かい点の重なり。haze が上がるほど点が増え、地が少しくすむ。値の変化は補間される
-struct HazeView: View, Animatable {
+/// 曇り：細かい点の重なり。haze が上がるほど点が増え、地が少しくすむ
+struct HazeView: View {
+    let haze: Double
+    let seed: Int
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(Palette.haze.opacity(0.16 * haze))
+            HazeDots(haze: haze, seed: seed).fill(Palette.haze.opacity(0.75))
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+/// 曇りの点。Shape なので haze の変化が補間され、掃除すると点が少しずつ消える
+struct HazeDots: Shape {
     var haze: Double
     let seed: Int
 
@@ -142,25 +156,23 @@ struct HazeView: View, Animatable {
         set { haze = newValue }
     }
 
-    var body: some View {
-        Canvas { context, size in
-            context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Palette.haze.opacity(0.16 * haze)))
-            let step: CGFloat = 6
-            let cols = Int(size.width / step) + 1
-            let rows = Int(size.height / step) + 1
-            for row in 0..<rows {
-                for col in 0..<cols {
-                    let u = HazeView.unit(seed, row, col)
-                    guard u < haze * 0.8 else { continue }
-                    let x = CGFloat(col) * step + (row.isMultiple(of: 2) ? 0 : step / 2) + CGFloat(u * 2)
-                    let y = CGFloat(row) * step + CGFloat(HazeView.unit(seed + 7, col, row) * 2)
-                    let r: CGFloat = 0.6 + CGFloat(u) * 0.6
-                    context.fill(Path(ellipseIn: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2)),
-                                 with: .color(Palette.haze.opacity(0.75)))
-                }
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let step: CGFloat = 6
+        let cols = Int(rect.width / step) + 1
+        let rows = Int(rect.height / step) + 1
+        for row in 0..<rows {
+            for col in 0..<cols {
+                let u = Self.unit(seed, row, col)
+                guard u < haze * 0.8 else { continue }
+                let shift: CGFloat = row.isMultiple(of: 2) ? 0 : step / 2
+                let x = rect.minX + CGFloat(col) * step + shift + CGFloat(u * 2)
+                let y = rect.minY + CGFloat(row) * step + CGFloat(Self.unit(seed + 7, col, row) * 2)
+                let r: CGFloat = 0.6 + CGFloat(u) * 0.6
+                p.addEllipse(in: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2))
             }
         }
-        .allowsHitTesting(false)
+        return p
     }
 
     /// 決まった乱数（毎回同じ散り方。スクリーンショットが安定する）

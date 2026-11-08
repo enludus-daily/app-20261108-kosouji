@@ -37,7 +37,6 @@ struct PlanView: View {
                 .padding(.vertical, Space.m)
             }
             .background(Palette.ground)
-            .searchable(text: $query, prompt: "場所で探す（例：レンジフード）")
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 if model.screenshotScene == "spot" { opened = SpotData.byID["k-hood-out"] }
@@ -109,8 +108,27 @@ struct PlanView: View {
         return SpotData.all.filter { !model.isUnlocked($0.pack) && rooms.contains($0.room) }.count
     }
 
+    private var searchField: some View {
+        HStack(spacing: Space.s) {
+            Image(systemName: "magnifyingglass").foregroundStyle(Palette.sub)
+            TextField("場所で探す（例：レンジフード）", text: $query)
+                .textInputAutocapitalization(.never)
+                .submitLabel(.search)
+            if !query.isEmpty {
+                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Palette.sub) }
+                    .accessibilityLabel("消す")
+            }
+        }
+        .font(.subheadline)
+        .padding(.horizontal, Space.m)
+        .frame(minHeight: 44)
+        .background(Palette.paper, in: RoundedRectangle(cornerRadius: Radius.chip, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Radius.chip, style: .continuous).strokeBorder(Palette.line, lineWidth: 1))
+    }
+
     private var list: some View {
         VStack(alignment: .leading, spacing: Space.s) {
+            searchField
             HStack(alignment: .firstTextBaseline) {
                 Text(query.isEmpty ? (model.selectedRoom?.name ?? "家じゅう") : "「\(query)」").font(Typo.title(.headline)).foregroundStyle(Palette.ink)
                 Spacer()
